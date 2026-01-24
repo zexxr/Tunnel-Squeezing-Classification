@@ -1,9 +1,13 @@
 import streamlit as st
 import pandas as pd
 import numpy as np
-import joblib
 import matplotlib.pyplot as plt
 import seaborn as sns
+
+# Import from modularized code
+from src.utils.helpers import load_model
+from src.models.svm_model import predict_with_confidence as predict_svm_with_confidence
+from src.models.rf_model import predict_rf
 
 # Page Config
 st.set_page_config(
@@ -34,8 +38,8 @@ st.markdown("""
 @st.cache_resource
 def load_models():
     try:
-        rf_model = joblib.load('rf_tunnel_squeezing.pkl')
-        svm_model = joblib.load('svm_tunnel_squeezing_enhanced.pkl')
+        rf_model = load_model('rf_tunnel_squeezing.pkl')
+        svm_model = load_model('svm_tunnel_squeezing_enhanced.pkl')
         return rf_model, svm_model
     except Exception as e:
         st.error(f"Error loading models: {e}")
