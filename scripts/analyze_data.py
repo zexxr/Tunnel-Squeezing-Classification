@@ -11,8 +11,17 @@ def generate_data_report(filepath: str):
     
     try:
         df = pd.read_csv(filepath)
+    except FileNotFoundError:
+        print(f"❌ Error: File not found: {filepath}")
+        sys.exit(1)
+    except pd.errors.EmptyDataError:
+        print(f"❌ Error: CSV file is empty")
+        sys.exit(1)
+    except pd.errors.ParserError as e:
+        print(f"❌ Error parsing CSV file: {e}")
+        sys.exit(1)
     except Exception as e:
-        print(f"❌ Error loading file: {e}")
+        print(f"❌ Unexpected error loading file: {e}")
         sys.exit(1)
     
     print("=" * 70)

@@ -27,8 +27,17 @@ def validate_tunnel_data(filepath: str) -> Tuple[bool, List[str]]:
     try:
         # Load the data
         df = pd.read_csv(filepath)
+    except FileNotFoundError:
+        errors.append(f"CSV file not found: {filepath}")
+        return False, errors
+    except pd.errors.EmptyDataError:
+        errors.append("CSV file is empty")
+        return False, errors
+    except pd.errors.ParserError as e:
+        errors.append(f"Error parsing CSV file: {str(e)}")
+        return False, errors
     except Exception as e:
-        errors.append(f"Error loading CSV file: {str(e)}")
+        errors.append(f"Unexpected error loading CSV file: {str(e)}")
         return False, errors
     
     # Check required columns exist
@@ -37,11 +46,13 @@ def validate_tunnel_data(filepath: str) -> Tuple[bool, List[str]]:
     if missing_columns:
         errors.append(f"Missing required columns: {missing_columns}")
     
-    # Check for missing values
-    missing_values = df[required_columns].isnull().sum()
-    if missing_values.any():
-        for col, count in missing_values[missing_values > 0].items():
-            errors.append(f"Column '{col}' has {count} missing values")
+    # Check for missing values (only in columns that exist)
+    existing_required_columns = [col for col in required_columns if col in df.columns]
+    if existing_required_columns:
+        missing_values = df[existing_required_columns].isnull().sum()
+        if missing_values.any():
+            for col, count in missing_values[missing_values > 0].items():
+                errors.append(f"Column '{col}' has {count} missing values")
     
     # Check data types
     expected_types = {
@@ -146,16 +157,20 @@ if __name__ == "__main__":
     
     if is_valid:
         print("✅ Data validation passed!")
-        print("\nAdditional checks:")
         
-        # Load and show basic stats
-        df = pd.read_csv(filepath)
-        print(f"  - Total samples: {len(df)}")
-        print(f"  - Features: {list(df.columns)}")
-        print(f"  - Class distribution:")
-        for cls, count in df['Class'].value_counts().sort_index().items():
-            percentage = (count / len(df)) * 100
-            print(f"    Class {cls}: {count} ({percentage:.1f}%)")
+        # Only load data once for additional stats
+        try:
+            df = pd.read_csv(filepath)
+            print("\nAdditional checks:")
+            print(f"  - Total samples: {len(df)}")
+            print(f"  - Features: {list(df.columns)}")
+            if 'Class' in df.columns:
+                print(f"  - Class distribution:")
+                for cls, count in df['Class'].value_counts().sort_index().items():
+                    percentage = (count / len(df)) * 100
+                    print(f"    Class {cls}: {count} ({percentage:.1f}%)")
+        except Exception as e:
+            print(f"\nNote: Could not load additional statistics: {e}")
     else:
         print("❌ Data validation failed:")
         for error in errors:

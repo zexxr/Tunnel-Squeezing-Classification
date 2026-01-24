@@ -32,6 +32,8 @@ Dataset for predicting tunnel squeezing severity in underground construction. Th
 This dataset represents tunnel squeezing case studies from various underground construction projects, compiled for geotechnical risk assessment and machine learning analysis.
 
 ## Statistics
+*Statistics as of January 2024. Run `python scripts/analyze_data.py` for current statistics.*
+
 - **Total samples**: 117
 - **Class distribution**:
   - Class 1 (Non-squeezing): 33 (28.2%)
